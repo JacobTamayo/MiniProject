@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+    <title>Calculator</title>
+    <head><h1>Calculator</h1></head>
+    <body>
+        <div id="display"> </div>
+        <div id = "remove">
+            <div id="clear" class= "delete"> clear </div>
+            <div id="backspace" class = "delete"> <- </div>
+        </div>
+        <div id="symbols">
+            <div class="sym" id="+"> + </div>
+            <div class="sym" id="-"> - </div>
+            <div class="sym" id="*"> * </div>
+            <div class="sym" id="/"> / </div>
+        </div>
+        <div id="numbers">
+            <div class="num" id="9"> 9</div>
+            <div class="num" id="8"> 8 </div>
+            <div class="num" id="7"> 7 </div>
+            <div class="num" id="6"> 6 </div>
+            <div class="num" id="5"> 5 </div>
+            <div class="num" id="4"> 4 </div>
+            <div class="num" id="3"> 3 </div>
+            <div class="num" id="2"> 2 </div>
+            <div class="num" id="1"> 1 </div>
+            <div class="num" id="0"> 0 </div>
+            <div id = "equals"> = </div>
+        </div>
+    </body>
+
+    <style>
+        #numbers{
+            display: grid;
+            grid-template-rows: repeat(4,100px);
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 1px;
+        }
+        #symbols{
+            display: grid;
+            grid-template-rows: 75px;
+            grid-template-columns: repeat(4, 75px);
+            grid-gap: 1px;
+            margin-bottom: 10px;
+        }
+        #remove{
+            display: grid;
+            grid-template-rows: 50px;
+            grid-template-columns: 100px 100px;;
+            grid-gap: 103px;
+        }
+        .sym{
+            background-color: green;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+        }
+        .num{
+            background-color: red;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .delete{
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        #equals{
+            background-color: blue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #display{
+            border: 1px solid black;
+            padding: 10px 10px 10px 10px;
+            width: 35%;
+            height: 25px;
+        }
+    </style>
+
+    <script>
+        const numbers = document.querySelectorAll('.num');
+        const symbols = document.querySelectorAll('.sym');
+        const equals = document.querySelector('#equals')
+        const display = document.querySelector('#display');
+        const clear = document.querySelector('#clear');
+        const backspace = document.querySelector('#backspace')
+        let words = "";
+        addEvent();
+
+
+        function calculate(words){
+            let problem = words;
+            let equation = problem.split("");
+            const symbols = findSymbols(equation);
+
+
+            let nums = []
+            let holder = 0;
+            //Loops through array of symbols and uses that as a seperator
+            //to find the numbers to input into an array
+            for(let i=0; i< symbols.length; i++){
+                holder = problem.indexOf(symbols[i])
+                nums.push(problem.substring(0, holder));
+                problem = problem.substring( holder+1);
+                if(i==symbols.length-1){
+                    nums.push(problem.substring(0));
+                }
+            }
+            let together = combine(symbols, nums);
+            let total = 0, index = 0;
+            while(together.length>1){
+                //Checks if there needs to be multiplication or division operation
+                if(together.indexOf("*") != -1 || together.indexOf("/") !=-1){
+                    //Checks which one comes first
+                    if(together.indexOf('*')!= -1 && (together.indexOf('/') == -1 || together.indexOf('*') < together.indexOf('/'))){
+                        total = multiply(together[together.indexOf('*')-1], together[together.indexOf('*')+1]);
+                        together[together.indexOf('*')-1] = total;
+                        together.splice(together.indexOf('*'), 2);
+                    }else{
+                        total = divide(together[together.indexOf('/')-1], together[together.indexOf('/')+1]);
+                        if(total==-69)
+                            return "You suck";
+                        together[together.indexOf('/')-1] = total;
+                        together.splice(together.indexOf('/'), 2);
+                    }
+                }else{
+                    if(together.indexOf('+') != -1 && (together.indexOf('-') == -1 || together.indexOf('+') < together.indexOf('-'))){
+                        total = add(together[together.indexOf('+')-1], together[together.indexOf('+')+1]);
+                        together[together.indexOf('+')-1] = total;
+                        together.splice(together.indexOf('+'), 2);
+                    }else{
+                        total = subtract(together[together.indexOf('-')-1], together[together.indexOf('-')+1]);
+                        together[together.indexOf('-')-1] = total;
+                        together.splice(together.indexOf('-'), 2);
+                    }
+                }
+                console.log(total);
+                console.log(together);
+            }
+            return together[0];
+        }
+
+        function combine(symbols, nums){
+            let arr = [];
+            for(let i=0; i<symbols.length; i++){
+                arr.push(+nums[i]);
+                arr.push(symbols[i]);
+            }
+            arr.push(+nums[nums.length-1]);
+            return arr;
+        }
+        
+
+        function findSymbols(equation){
+            let arr = equation.filter(val => (val=='*' || val =='/' || val=='+'||val=='-'));
+            return arr;
+        }
+        //Checks to see if the problem inputted is a valid problem for the computer to solve
+        function check(operator, problem){
+            if(operator.length==1 && problem.indexOf(operator) > 0 && problem.indexOf(operator) < problem.length-1)
+                return true;
+            else
+                return false;
+        }
+        //Add the eventListener to all the buttons
+        function addEvent(){
+            numbers.forEach((x)=> {
+                x.addEventListener('click', () => {
+                    words +=  x.id;
+                    display.textContent = words;
+                })
+            });
+            symbols.forEach((y)=> {
+                y.addEventListener('click', () => {
+                    words += y.id;
+                    display.textContent = words;
+                })
+            });
+
+            clear.addEventListener('click', ()=>{
+                words = "";
+                display.textContent = words;
+            });
+            equals.addEventListener('click', () =>{
+                words = calculate(words);
+                display.textContent = words;
+            });
+            backspace.addEventListener('click', ()=>{
+                words = words.replace(words.charAt(words.length-1),"");
+                console.log(words);
+                display.textContent = words;
+            });
+        }
+
+        function findmultiply(element, index, array){
+            return (element == '*');
+        }
+        function findadd(element, index, array){
+            return (element == '+');
+        }
+        function findsubtract(element, index, array){
+            return (element == '-');
+        }
+        function finddivide(element, index, array){
+            return (element == '/');
+        }
+        //The basic math operations
+        function add(x,y){ return x + y; }
+        function subtract(x,y){ return x - y; }
+        function multiply(x,y){ return x * y; }
+        function divide(x,y){
+            if(y==0)
+                return "-69"
+            return x / y; }
+    </script>
+</html>
